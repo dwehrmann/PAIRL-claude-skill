@@ -1,0 +1,75 @@
+{
+  "name": "pairl",
+  "displayName": "PAIRL - Agent Message Protocol",
+  "version": "1.1.0",
+  "description": "Generate, validate, and convert agent-to-agent messages using the PAIRL v1.1 protocol. Achieves 70-90% token reduction with built-in budget tracking and cost reporting.",
+  "author": "dwehrmann",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dwehrmann/PAIRL-claude-skill"
+  },
+  "keywords": [
+    "pairl",
+    "agent-communication",
+    "protocol",
+    "multi-agent",
+    "token-efficiency",
+    "llm",
+    "ai",
+    "message-format",
+    "structured-output",
+    "budget-tracking"
+  ],
+  "category": "productivity",
+  "tags": ["agent", "protocol", "efficiency", "validation"],
+  "examples": [
+    {
+      "title": "Generate PAIRL message",
+      "command": "/pairl generate: Can you analyze the sales data and send me a report by Friday?"
+    },
+    {
+      "title": "Validate PAIRL file",
+      "command": "/pairl validate message.pairl"
+    },
+    {
+      "title": "Convert conversation to PAIRL",
+      "command": "/pairl convert: [paste conversation]"
+    },
+    {
+      "title": "Explain PAIRL message",
+      "command": "/pairl explain: [paste PAIRL message]"
+    }
+  ],
+  "documentation": "https://github.com/dwehrmann/PAIRL/blob/main/SPEC.md",
+  "minimumClaudeCodeVersion": "1.0.0",
+  "capabilities": {
+    "generation": true,
+    "validation": true,
+    "conversion": true,
+    "explanation": true
+  },
+  "settings": {
+    "defaultValidationMode": {
+      "type": "string",
+      "enum": ["strict", "loose"],
+      "default": "loose",
+      "description": "Default validation mode for PAIRL messages"
+    },
+    "autoGenerateRIDs": {
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically generate record IDs (@rid) for all records"
+    },
+    "includeHash": {
+      "type": "boolean",
+      "default": false,
+      "description": "Include @hash field for message integrity verification"
+    },
+    "defaultBudget": {
+      "type": "string",
+      "default": "",
+      "description": "Default budget to apply to generated messages (e.g., '0.10USD')"
+    }
+  }
+}
