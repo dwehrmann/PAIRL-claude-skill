@@ -6,7 +6,8 @@
   "files": [
     "skill.md",
     "skill.json",
-    "README.md"
+    "README.md",
+    "examples/"
   ],
   "scripts": {
     "test": "echo \"No tests yet\" && exit 0"

@@ -50,6 +50,34 @@ claude-code skill install ./claude-skill
 
 Invoke the skill using `/pairl` in any Claude Code session:
 
+### Quick Start Example
+
+Convert a simple delegation request into PAIRL format:
+
+```
+/pairl generate: Hi this is Bob. Message Jonas and ask for the report on Dynamic Mondays. I need it by tomorrow, Feb. 3rd, 2026
+```
+
+**Output**:
+```pairl
+@v 1
+@mid ref:msg:01JH1A2B3C4D5E6F7G8H9J0K1M
+@ts 2026-02-02T10:00:00.000+01:00
+
+req{t=report,s=c,l=1,m=!,a=i} @rid=a1
+#fact from=Bob @rid=f1
+#fact to=Jonas @rid=f2
+#fact topic=Dynamic_Mondays @rid=f3
+#fact deadline=2026-02-03 @rid=f4
+```
+
+**What happened here?**
+- Natural language (28 tokens) → PAIRL (12 tokens) = **57% savings**
+- Critical data (names, dates, topic) moved to lossless `#fact` records
+- Style/mood encoded in compact intent parameters (`s=c` casual, `m=!` urgent)
+
+See [examples/01-simple-delegation.pairl](examples/01-simple-delegation.pairl) for the full example.
+
 ### Generate PAIRL Messages
 
 Convert natural language requests into PAIRL format:

@@ -1,0 +1,9 @@
+@v 1
+@mid ref:msg:01JH1A2B3C4D5E6F7G8H9J0K1M
+@ts 2026-02-02T10:00:00.000+01:00
+
+req{t=report,s=c,l=1,m=!,a=i} @rid=a1
+#fact from=Bob @rid=f1
+#fact to=Jonas @rid=f2
+#fact topic=Dynamic_Mondays @rid=f3
+#fact deadline=2026-02-03 @rid=f4
