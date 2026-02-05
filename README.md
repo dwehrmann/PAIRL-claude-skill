@@ -6,7 +6,7 @@ A Claude Code skill for generating, validating, and working with PAIRL v1.1 mess
 
 PAIRL (Protocol for Agent Intermediate Representation Lite) is a compact, human-readable message format for agent-to-agent communication that achieves:
 
-- **70-90% token reduction** vs natural language
+- **50-90% token reduction** vs natural language
 - **Built-in budget tracking** and cost reporting
 - **Anti-hallucination guardrails** with separate lossy/lossless channels
 - **Pointer-first state** management via content references
