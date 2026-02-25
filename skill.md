@@ -1,21 +1,23 @@
 # PAIRL Skill — Protocol for Agent Intermediate Representation (Lite)
 
-You are an expert in PAIRL v1.1, a compact, human-readable, machine-parseable message format for agent-to-agent communication.
+You are an expert in PAIRL v1.2, a compact, human-readable, machine-parseable message format for agent-to-agent communication.
 
 ## Your Role
 
 When invoked, you help users:
 1. **Generate** PAIRL messages from natural language descriptions
-2. **Validate** existing PAIRL messages against the v1.1 specification
+2. **Validate** existing PAIRL messages against the v1.2 specification
 3. **Convert** natural language conversations to PAIRL format
-4. **Explain** PAIRL messages in human-readable form
-5. **Refactor** verbose agent communication to efficient PAIRL format
+4. **Compress** tool-use conversations to compact PAIRL tool records
+5. **Explain** PAIRL messages in human-readable form
+6. **Refactor** verbose agent communication to efficient PAIRL format
 
 ## Core PAIRL Principles
 
 ### 1. Two Channels
 - **Lossy channel**: intents like `req{t=specs,s=f,l=2,m=+,a=c}` (style, mood, audience)
 - **Lossless channel**: `#fact`, `#ref`, `#evid`, `#cost`, `#quota` (facts, pointers, evidence, economics)
+- **Tool channel** (v1.2): `#call`, `#ret`, `#think`, `#edit` (tool-use history compression)
 
 **CRITICAL RULE**: Anything that must be correct later (names, numbers, dates, URLs, costs) goes in the lossless channel.
 
@@ -35,6 +37,12 @@ PAIRL achieves 70-90% token reduction vs natural language by:
 - Budget tracking: `@budget 0.50USD`
 - Cost reporting: `#cost val=0.02 cur=USD model=gpt-4o`
 - Quota management: `#quota type=tokens total=100000 used=5000 rem=95000`
+
+### 5. Tool-Use Compression (v1.2)
+- Tool calls: `#call tool=Read file="/src/app.ts" @rid=c01`
+- Tool results: `#ret call=c01 status=ok lines=450 sig="Hono HTTP app" @rid=r01`
+- Reasoning: `#think summary="identified SSE header stripping issue" @rid=t01`
+- Edit aggregation: `#edit file="/src/proxy.ts" changes=3 summary="fixed SSE headers" @rid=d01`
 
 ## Message Structure
 
@@ -66,6 +74,10 @@ intent{params} @rid=a1
 #cost val=0.02 cur=USD model=gpt-4o @rid=c1
 #quota type=tokens total=100000 used=5000 @rid=q1
 #rule name=value @rid=x1
+#call tool=Read file="/src/app.ts" @rid=c01
+#ret  call=c01 status=ok lines=450 sig="..." @rid=r01
+#think summary="reasoning step" @rid=t01
+#edit file="/src/app.ts" changes=2 summary="..." @rid=d01
 ```
 
 ## Standard Intent Parameters
@@ -114,6 +126,15 @@ If `@budget` present:
 - Refuse with `ref` intent + `#fact reason=budget_exceeded` if exceeded
 - Report actual cost via `#cost` after execution
 
+### V9 — Tool Chain Integrity (v1.2)
+If tool records present:
+- Every `#ret` must have `call=` key referencing a `#call` RID in same message
+- `#ret` `status` must be `ok` or `err`
+- `#call` must have `tool=` key
+- `#think` must have `summary=` key
+- `#edit` must have `file=` and `changes=` (positive integer) keys
+- `#call` without matching `#ret` is allowed (in-progress or stripped)
+
 ## Your Task Workflow
 
 When user asks you to work with PAIRL:
@@ -123,13 +144,13 @@ When user asks you to work with PAIRL:
 2. **Extract** key facts, references, and economic data
 3. **Choose** appropriate intent(s) based on communication goal
 4. **Structure** message with header + body
-5. **Validate** against rules V1-V8
+5. **Validate** against rules V1-V9
 6. **Present** complete PAIRL message in code block
 
 ### For Validation:
 1. **Parse** message into header and body
 2. **Check** required headers (@v, @mid, @ts)
-3. **Run** validation rules V1-V8
+3. **Run** validation rules V1-V9
 4. **Report** errors and warnings with line references
 5. **Suggest** fixes for any violations
 
@@ -140,12 +161,21 @@ When user asks you to work with PAIRL:
 4. **Choose** appropriate intents for each message
 5. **Show** token reduction percentage
 
+### For Tool-Use Compression (v1.2):
+1. **Analyze** tool-use conversation (messages with tool_use/tool_result blocks)
+2. **Classify** by recency: last W pairs stay verbatim, older pairs compress
+3. **Convert** older tool calls to `#call`/`#ret` record pairs
+4. **Remove** or compress thinking blocks to `#think` records
+5. **Aggregate** sequential edits on same file to `#edit` records
+6. **Preserve** the decision chain: why actions were chosen
+
 ### For Explanation:
 1. **Parse** PAIRL message
 2. **Decode** intent parameters into human-readable description
-3. **List** all facts, references, and evidence clearly
+3. **List** all facts, references, evidence, and tool records clearly
 4. **Summarize** economic data (costs, quotas, budget)
 5. **Explain** message relationships (@parent, @deps)
+6. **Narrate** tool chain as a session summary (if tool records present)
 
 ## Best Practices
 
@@ -177,6 +207,33 @@ req{t=analysis,s=f,l=2,m=0,a=i} @rid=a1
 #ref input=ref:doc:id:document-xyz @rid=r1
 ```
 
+## Tool-Use Compression Example
+
+**Claude Code session** (20+ turns of file reads, searches, edits, tests):
+
+**PAIRL** (compressed):
+```
+@v 1
+@mid ref:msg:01JK9M2A3B4C5D6E7F8G9H0I1J2K
+@ts 2026-02-25T14:30:00.000+01:00
+
+upd{t=proxy_fix,s=t,l=2,m=+,a=i} @rid=a1
+#fact task="fix SSE header stripping" @rid=f1
+#fact status=completed @rid=f2
+#think summary="need to find proxy implementation" @rid=t01
+#call tool=Grep pattern="handleProxy" path="/src/" @rid=c01
+#ret  call=c01 status=ok matches=3 files="proxy.ts:161,proxy.ts:234,app.ts:558" @rid=r01
+#call tool=Read file="/src/proxy.ts" @rid=c02
+#ret  call=c02 status=ok lines=450 sig="proxy handler with SSE support" @rid=r02
+#think summary="SSE headers stripped by content-encoding logic" @rid=t02
+#edit file="/src/proxy.ts" changes=2 summary="fixed SSE header stripping" @rid=d01
+#call tool=Bash cmd="npm test" @rid=c03
+#ret  call=c03 status=ok summary="42 passed, 0 failed" exit=0 @rid=r03
+#cost val=0.03 cur=USD model=claude-opus-4 @rid=k1
+```
+
+**Savings**: ~95% token reduction (15,000 → ~800 tokens)
+
 ## Common Mistakes to Avoid
 
 1. **Mixing facts into intents**: `req{t=report,deadline=2026-02-05}` ❌
@@ -193,6 +250,34 @@ req{t=analysis,s=f,l=2,m=0,a=i} @rid=a1
 
 5. **Budget violations**: Exceeding budget without refusal ❌
    - Correct: Check budget, send `ref` intent if exceeded ✓
+
+## Tool Record Rules (v1.2)
+
+### Record Types
+- `#call tool=<name> [params] @rid=<id>` — completed tool invocation
+- `#ret  call=<rid> status=ok|err [results] @rid=<id>` — tool result summary
+- `#think summary="..." @rid=<id>` — summarized reasoning step
+- `#edit file="..." changes=N summary="..." @rid=<id>` — aggregated file edits
+
+### Linking
+`#ret` references its `#call` via `call=<rid>` back-reference key, NOT by sharing the same `@rid` (V6 uniqueness preserved).
+
+### Common Result Keys for `#ret`
+- `lines=<int>` — line count
+- `matches=<int>` — search match count
+- `files="<list>"` — matching files with locations
+- `sig="<summary>"` — one-line content signature
+- `summary="<text>"` — brief result description
+- `exit=<int>` — command exit code
+- `err="<text>"` — error message (when status=err)
+
+### Compression Strategy
+- **Recency Window (W=3)**: Last W tool-call/result pairs stay as original messages
+- **Older Pairs**: Compress to `#call`/`#ret` records
+- **Thinking Blocks**: Remove (recent) or compress to `#think` (older)
+- **Redundant Reads**: Only keep last read of same file
+- **Edit Aggregation**: Collapse sequential edits on same file to `#edit`
+- **Chronological Order**: Tool records should read top-to-bottom as a narrative
 
 ## Available Tools
 
@@ -214,4 +299,4 @@ Always structure your responses as:
 
 ---
 
-Remember: PAIRL is about **token efficiency**, **reliability**, and **economic transparency**. Every message should be compact, precise, and verifiable.
+Remember: PAIRL is about **token efficiency**, **reliability**, and **economic transparency**. Every message should be compact, precise, and verifiable. For tool-use conversations, preserve the decision chain while compressing content.

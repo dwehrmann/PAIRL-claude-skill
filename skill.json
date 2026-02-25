@@ -1,8 +1,8 @@
 {
   "name": "pairl",
   "displayName": "PAIRL - Agent Message Protocol",
-  "version": "1.1.0",
-  "description": "Generate, validate, and convert agent-to-agent messages using the PAIRL v1.1 protocol. Achieves 70-90% token reduction with built-in budget tracking and cost reporting.",
+  "version": "1.2.0",
+  "description": "Generate, validate, and convert agent-to-agent messages using the PAIRL v1.2 protocol. Achieves 70-90% token reduction with built-in budget tracking and cost reporting.",
   "author": "dwehrmann",
   "license": "Apache-2.0",
   "repository": {
@@ -39,6 +39,10 @@
     {
       "title": "Explain PAIRL message",
       "command": "/pairl explain: [paste PAIRL message]"
+    },
+    {
+      "title": "Compress tool-use session",
+      "command": "/pairl compress: [paste tool-use conversation]"
     }
   ],
   "documentation": "https://github.com/dwehrmann/PAIRL/blob/main/SPEC.md",
@@ -47,6 +51,7 @@
     "generation": true,
     "validation": true,
     "conversion": true,
+    "compression": true,
     "explanation": true
   },
   "settings": {

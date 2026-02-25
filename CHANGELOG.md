@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-25
+
+### Added
+- Support for PAIRL v1.2 specification
+- Tool-use compression: `#call`, `#ret`, `#think`, `#edit` record types
+- V9 validation rule (Tool Chain Integrity)
+- `/pairl compress` command for tool-use conversation compression
+- Tool record rules and compression strategy in skill.md
+- Tool-use compression example in README
+
+### Changed
+- Updated all validation references from V1-V8 to V1-V9
+- Updated skill description to reference v1.2
+
+---
+
 ## [1.1.0] - 2026-02-02
 
 ### Added

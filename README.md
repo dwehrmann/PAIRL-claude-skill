@@ -1,12 +1,13 @@
 # PAIRL Claude Code Skill
 
-A Claude Code skill for generating, validating, and working with PAIRL v1.1 messages.
+A Claude Code skill for generating, validating, and working with PAIRL v1.2 messages.
 
 ## What is PAIRL?
 
 PAIRL (Protocol for Agent Intermediate Representation Lite) is a compact, human-readable message format for agent-to-agent communication that achieves:
 
-- **50-90% token reduction** vs natural language
+- **70-90% token reduction** vs natural language
+- **Tool-use compression** (v1.2): ~95% reduction for tool-call/result chains
 - **Built-in budget tracking** and cost reporting
 - **Anti-hallucination guardrails** with separate lossy/lossless channels
 - **Pointer-first state** management via content references
@@ -150,12 +151,13 @@ req{t=specs,s=f,l=2,m=+,a=c} @rid=a1
 ### Core Capabilities
 
 - **Message Generation**: Convert natural language to PAIRL
-- **Validation**: Check compliance with PAIRL v1.1 spec
+- **Validation**: Check compliance with PAIRL v1.2 spec
 - **Conversion**: Transform verbose communication to efficient PAIRL
+- **Tool-Use Compression** (v1.2): Compress tool-call/result chains to `#call`/`#ret` records
 - **Explanation**: Decode PAIRL messages into human-readable form
 - **Token Analysis**: Calculate token savings vs natural language
 
-### Validation Rules (v1.1)
+### Validation Rules (v1.2)
 
 The skill enforces all PAIRL validation rules:
 
@@ -164,6 +166,7 @@ The skill enforces all PAIRL validation rules:
 - **V3** — Ref format: All refs match `ref:<ns>:<type>:<id>`
 - **V6** — RID uniqueness: No duplicate record IDs
 - **V8** — Budget compliance: Cost tracking and budget enforcement
+- **V9** — Tool chain integrity: `#ret` must reference valid `#call` RID, status must be ok/err
 
 ### Economic Features
 
@@ -172,6 +175,15 @@ Native support for:
 - Cost reporting via `#cost` records
 - Quota management via `#quota` records
 - Resource bidding for approval workflows
+
+### Tool-Use Compression (v1.2)
+
+Compress agentic tool-use conversations:
+- `#call` records for tool invocations (Read, Grep, Edit, Bash, etc.)
+- `#ret` records for compressed results (line counts, signatures, match counts)
+- `#think` records for summarized reasoning steps
+- `#edit` records for aggregated file modifications
+- Recency window preserves last W tool interactions verbatim
 
 ## Configuration
 
@@ -264,6 +276,36 @@ bid{t=research,s=f,l=1,m=!} @rid=a1
 #fact wait_for_approval=true @rid=f2
 ```
 
+### Example 4: Tool-Use Compression
+
+**Input**:
+```
+/pairl compress: [20-turn Claude Code session fixing SSE headers in proxy.ts]
+```
+
+**Output**:
+```pairl
+@v 1
+@mid ref:msg:01JK9M2A3B4C5D6E7F8G9H0I1J2K
+@ts 2026-02-25T14:30:00.000+01:00
+
+upd{t=proxy_fix,s=t,l=2,m=+,a=i} @rid=a1
+#fact task="fix SSE header stripping" @rid=f1
+#fact status=completed @rid=f2
+#think summary="need to find proxy implementation" @rid=t01
+#call tool=Grep pattern="handleProxy" path="/src/" @rid=c01
+#ret  call=c01 status=ok matches=3 files="proxy.ts:161,proxy.ts:234,app.ts:558" @rid=r01
+#call tool=Read file="/src/proxy.ts" @rid=c02
+#ret  call=c02 status=ok lines=450 sig="proxy handler with SSE support" @rid=r02
+#think summary="SSE headers stripped by content-encoding logic" @rid=t02
+#edit file="/src/proxy.ts" changes=2 summary="fixed SSE header stripping" @rid=d01
+#call tool=Bash cmd="npm test" @rid=c03
+#ret  call=c03 status=ok summary="42 passed, 0 failed" exit=0 @rid=r03
+#cost val=0.03 cur=USD model=claude-opus-4 @rid=k1
+```
+
+**Savings**: ~95% token reduction (15,000 → ~800 tokens)
+
 ## Integration with PAIRL Tools
 
 The skill works seamlessly with the PAIRL ecosystem:
@@ -284,7 +326,7 @@ python /path/to/PAIRL/tools/validator.py --strict message.pairl
 ### Reference to Specification
 
 The skill has full access to:
-- `/path/to/PAIRL/SPEC.md` — Complete v1.1 specification
+- `/path/to/PAIRL/SPEC.md` — Complete v1.2 specification
 - `/path/to/PAIRL/examples/` — Example messages and threads
 - `/path/to/PAIRL/tools/validator.py` — Reference validator
 

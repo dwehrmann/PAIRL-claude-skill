@@ -111,7 +111,7 @@ See the main [PAIRL repository examples](https://github.com/dwehrmann/PAIRL/tree
 
 ## Validation
 
-All examples pass PAIRL v1.1 validation:
+All examples pass PAIRL v1.2 validation:
 
 ```bash
 # Using the PAIRL validator
@@ -125,4 +125,4 @@ Expected output:
 
 ---
 
-For the complete PAIRL v1.1 specification, see [SPEC.md](https://github.com/dwehrmann/PAIRL/blob/main/SPEC.md).
+For the complete PAIRL v1.2 specification, see [SPEC.md](https://github.com/dwehrmann/PAIRL/blob/main/SPEC.md).
